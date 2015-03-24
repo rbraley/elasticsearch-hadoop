@@ -7,7 +7,7 @@ import org.elasticsearch.hadoop.serialization.JdkBytesConverter
 import org.elasticsearch.hadoop.serialization.builder.ValueWriter
 import org.elasticsearch.hadoop.serialization.field.FieldExtractor
 import org.elasticsearch.hadoop.serialization.BytesConverter
-import org.apache.spark.sql.catalyst.types.StructType
+import org.apache.spark.sql.types.StructType
 
 private[spark] class EsSchemaRDDWriter
 	(schema: StructType, override val serializedSettings: String) 

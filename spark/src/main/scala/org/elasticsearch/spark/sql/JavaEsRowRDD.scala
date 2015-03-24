@@ -21,7 +21,7 @@ import org.apache.spark.SparkContext
 import org.elasticsearch.spark.rdd.AbstractEsRDD
 import org.elasticsearch.spark.rdd.EsPartition
 import org.elasticsearch.spark.rdd.AbstractEsRDDIterator
-import org.apache.spark.sql.api.java.Row
+import org.apache.spark.sql.Row
 
 // see the comments in ScalaEsRowRDD 
 private[spark] class JavaEsRowRDD(

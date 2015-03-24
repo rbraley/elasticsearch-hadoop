@@ -54,4 +54,6 @@ private[spark] class ScalaEsRow(private[spark] val values: ArrayBuffer[AnyRef]) 
   }
   
   def copy() = this
+
+  def toSeq: Seq[Any] = values.toSeq
 }

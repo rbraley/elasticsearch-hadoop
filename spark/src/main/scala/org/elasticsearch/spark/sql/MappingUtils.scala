@@ -3,26 +3,23 @@ package org.elasticsearch.spark.sql
 import scala.Array.fallbackCanBuildFrom
 import scala.collection.JavaConverters.seqAsJavaListConverter
 
-import org.apache.spark.sql.ArrayType
-import org.apache.spark.sql.DataType
-import org.apache.spark.sql.DecimalType
-import org.apache.spark.sql.MapType
-import org.apache.spark.sql.api.java.{ DataType => JDataType }
-import org.apache.spark.sql.api.java.{ DecimalType => JDecimalType }
-import org.apache.spark.sql.api.java.{ StructField => JStructField }
-import org.apache.spark.sql.catalyst.types.BinaryType
-import org.apache.spark.sql.catalyst.types.BooleanType
-import org.apache.spark.sql.catalyst.types.ByteType
-import org.apache.spark.sql.catalyst.types.DoubleType
-import org.apache.spark.sql.catalyst.types.FloatType
-import org.apache.spark.sql.catalyst.types.IntegerType
-import org.apache.spark.sql.catalyst.types.LongType
-import org.apache.spark.sql.catalyst.types.NullType
-import org.apache.spark.sql.catalyst.types.ShortType
-import org.apache.spark.sql.catalyst.types.StringType
-import org.apache.spark.sql.catalyst.types.StructField
-import org.apache.spark.sql.catalyst.types.StructType
-import org.apache.spark.sql.catalyst.types.TimestampType
+import org.apache.spark.sql.types.ArrayType
+import org.apache.spark.sql.types.DataType
+import org.apache.spark.sql.types.DecimalType
+import org.apache.spark.sql.types.MapType
+import org.apache.spark.sql.types.BinaryType
+import org.apache.spark.sql.types.BooleanType
+import org.apache.spark.sql.types.ByteType
+import org.apache.spark.sql.types.DoubleType
+import org.apache.spark.sql.types.FloatType
+import org.apache.spark.sql.types.IntegerType
+import org.apache.spark.sql.types.LongType
+import org.apache.spark.sql.types.NullType
+import org.apache.spark.sql.types.ShortType
+import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql.types.StructField
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.TimestampType
 import org.elasticsearch.hadoop.EsHadoopIllegalStateException
 import org.elasticsearch.hadoop.cfg.Settings
 import org.elasticsearch.hadoop.rest.RestRepository

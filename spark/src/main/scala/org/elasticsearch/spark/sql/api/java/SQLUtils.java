@@ -1,18 +1,15 @@
 package org.elasticsearch.spark.sql.api.java;
 
-import org.apache.spark.sql.SchemaRDD;
-import org.apache.spark.sql.api.java.JavaSchemaRDD;
-import org.apache.spark.sql.types.util.DataTypeConversions;
-
+import org.apache.spark.sql.DataFrame;
 
 abstract class SQLUtils {
 	// access given field through Java as Scala doesn't allow it...
-	static SchemaRDD baseSchemaRDD(JavaSchemaRDD schemaRDD) {
-		return schemaRDD.baseSchemaRDD();
+	static DataFrame baseSchemaRDD(DataFrame schemaRDD) {
+		return schemaRDD;
 	}
 	
-	static org.apache.spark.sql.api.java.DataType asJavaDataType(org.apache.spark.sql.catalyst.types.DataType scalaDataType) {
-		return DataTypeConversions.asJavaDataType(scalaDataType);
+	static org.apache.spark.sql.types.DataType asJavaDataType(org.apache.spark.sql.types.DataType scalaDataType) {
+		return scalaDataType;
 	}
 }
 

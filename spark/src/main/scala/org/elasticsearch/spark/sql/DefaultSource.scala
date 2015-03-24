@@ -23,7 +23,7 @@ private[sql] class DefaultSource extends RelationProvider {
 
 private [sql] case class ElasticsearchRelation(parameters: Map[String, String])
 	(@transient val sqlContext: SQLContext)
-  extends PrunedScan {  
+  extends BaseRelation with PrunedScan {
 
   @transient lazy val cfg = {
     new SparkSettingsManager().load(sqlContext.sparkContext.getConf).merge(parameters.asJava)

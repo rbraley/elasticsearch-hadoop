@@ -10,12 +10,13 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.sql.api.java.DataType;
-import org.apache.spark.sql.api.java.JavaSQLContext;
-import org.apache.spark.sql.api.java.JavaSchemaRDD;
-import org.apache.spark.sql.api.java.Row;
-import org.apache.spark.sql.api.java.StructField;
-import org.apache.spark.sql.api.java.StructType;
+import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 import org.elasticsearch.hadoop.mr.RestUtils;
 import org.elasticsearch.hadoop.util.TestSettings;
 import org.elasticsearch.hadoop.util.TestUtils;
@@ -44,12 +45,12 @@ public class AbstractJavaEsSparkSQLTest implements Serializable {
 			.setMaster("local").setAppName("estest");
 	
 	private static transient JavaSparkContext sc = null;
-	private static transient JavaSQLContext sqc = null;
+	private static transient SQLContext sqc = null;
 
 	@BeforeClass
 	public static void setup() {
 		sc = new JavaSparkContext(conf);
-		sqc = new JavaSQLContext(sc);
+		sqc = new SQLContext(sc);
 	}
 
 	@AfterClass
@@ -63,19 +64,19 @@ public class AbstractJavaEsSparkSQLTest implements Serializable {
 
 	@Test
 	public void testBasicRead() throws Exception {
-		JavaSchemaRDD schemaRDD = artistsAsSchemaRDD();
+		DataFrame schemaRDD = artistsAsSchemaRDD();
 		assertTrue(schemaRDD.count() > 300);
 		schemaRDD.registerTempTable("datfile");
-		System.out.println(schemaRDD.schemaString());
-		assertEquals(5, schemaRDD.take(5).size());
-		JavaSchemaRDD results = sqc
+		System.out.println(schemaRDD.schema().toString());
+		assertEquals(5, schemaRDD.take(5).length);
+		DataFrame results = sqc
 				.sql("SELECT name FROM datfile WHERE id >=1 AND id <=10");
-		assertEquals(10, schemaRDD.take(10).size());
+		assertEquals(10, schemaRDD.take(10).length);
 	}
 
 	@Test
 	public void testEsSchemaRDD1Write() throws Exception {
-		JavaSchemaRDD schemaRDD = artistsAsSchemaRDD();
+		DataFrame schemaRDD = artistsAsSchemaRDD();
 
 		String target = "sparksql-test/scala-basic-write";
 		JavaEsSparkSQL.saveToEs(schemaRDD, target);
@@ -85,7 +86,7 @@ public class AbstractJavaEsSparkSQLTest implements Serializable {
 
 	@Test
 	public void testEsSchemaRDD1WriteWithId() throws Exception {
-		JavaSchemaRDD schemaRDD = artistsAsSchemaRDD();
+		DataFrame schemaRDD = artistsAsSchemaRDD();
 
 		String target = "sparksql-test/scala-basic-write-id-mapping";
 		JavaEsSparkSQL.saveToEs(schemaRDD, target, ImmutableMap.of(ES_MAPPING_ID, "id"));
@@ -98,9 +99,9 @@ public class AbstractJavaEsSparkSQLTest implements Serializable {
 	public void testEsSchemaRDD2Read() throws Exception {
 		String target = "sparksql-test/scala-basic-write";
 
-		JavaSchemaRDD schemaRDD = JavaEsSparkSQL.esRDD(sqc, target);
+		DataFrame schemaRDD = (DataFrame)JavaEsSparkSQL.esRDD(sqc, target);
 		assertTrue(schemaRDD.count() > 300);
-		String schema = schemaRDD.schemaString();
+		String schema = schemaRDD.schema().toString();
 		assertTrue(schema.contains("id: long"));
 		assertTrue(schema.contains("name: string"));
 		assertTrue(schema.contains("pictures: string"));
@@ -110,22 +111,22 @@ public class AbstractJavaEsSparkSQLTest implements Serializable {
 		// schemaRDD.take(5).foreach(println)
 
 		schemaRDD.registerTempTable("basicRead");
-		JavaSchemaRDD nameRDD = sqc.sql("SELECT name FROM basicRead WHERE id >= 1 AND id <=10");
+		DataFrame nameRDD = sqc.sql("SELECT name FROM basicRead WHERE id >= 1 AND id <=10");
 		assertEquals(10, nameRDD.count());
 
 	}
 
-	private JavaSchemaRDD artistsAsSchemaRDD() {
+	private DataFrame artistsAsSchemaRDD() {
 		String input = TestUtils.sampleArtistsDat();
 		JavaRDD<String> data = sc.textFile(input);
 
-		StructType schema = DataType
-				.createStructType(new StructField[] {
-						DataType.createStructField("id", DataType.IntegerType, false),
-						DataType.createStructField("name", DataType.StringType, false),
-						DataType.createStructField("url", DataType.StringType, true),
-						DataType.createStructField("pictures", DataType.StringType, true),
-						DataType.createStructField("time", DataType.TimestampType, true) });
+		StructType schema = DataTypes
+				.createStructType(new StructField[]{
+                        DataTypes.createStructField("id", DataTypes.IntegerType, false),
+                        DataTypes.createStructField("name", DataTypes.StringType, false),
+                        DataTypes.createStructField("url", DataTypes.StringType, true),
+                        DataTypes.createStructField("pictures", DataTypes.StringType, true),
+                        DataTypes.createStructField("time", DataTypes.TimestampType, true)});
 
 		JavaRDD<Row> rowData = data.map(new Function<String, String[]>() {
 			@Override
@@ -135,11 +136,11 @@ public class AbstractJavaEsSparkSQLTest implements Serializable {
 		}).map(new Function<String[], Row>() {
 			@Override
 			public Row call(String[] r) throws Exception {
-				return Row.create(Integer.parseInt(r[0]), r[1], r[2], r[3],
-						new Timestamp(DatatypeConverter.parseDateTime(r[4]).getTimeInMillis()));
+				return RowFactory.create(Integer.parseInt(r[0]), r[1], r[2], r[3],
+                        new Timestamp(DatatypeConverter.parseDateTime(r[4]).getTimeInMillis()));
 			}
 		});
 
-		return sqc.applySchema(rowData, schema);
+		return sqc.createDataFrame(rowData, schema);
 	}
 }

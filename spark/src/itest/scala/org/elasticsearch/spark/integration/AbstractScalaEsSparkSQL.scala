@@ -23,13 +23,13 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConversions.propertiesAsScalaMap
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.IntegerType
+import org.apache.spark.sql.types.IntegerType
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.StringType
-import org.apache.spark.sql.StructField
-import org.apache.spark.sql.StructType
-import org.apache.spark.sql.TimestampType
+import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql.types.StructField
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.TimestampType
 import org.elasticsearch.hadoop.mr.RestUtils
 import org.elasticsearch.hadoop.util.TestSettings
 import org.elasticsearch.hadoop.util.TestUtils
@@ -83,7 +83,7 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
         val schemaRDD = artistsAsSchemaRDD
         assertTrue(schemaRDD.count > 300)
         schemaRDD.registerTempTable("datfile")
-        println(schemaRDD.schemaString)
+        println(schemaRDD.schema.simpleString)
         //schemaRDD.take(5).foreach(println)
         val results = sqc.sql("SELECT name FROM datfile WHERE id >=1 AND id <=10")
         //results.take(5).foreach(println)
@@ -116,7 +116,7 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
         
       val schemaRDD = sqc.esRDD(target)
       assertTrue(schemaRDD.count > 300)
-      val schema = schemaRDD.schemaString
+      val schema = schemaRDD.schema.simpleString
       assertTrue(schema.contains("id: long"))
       assertTrue(schema.contains("name: string"))
       assertTrue(schema.contains("pictures: string"))
@@ -150,7 +150,7 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
     
       val rowRDD = data.map(_.split("\t")).map(r => Row(r(0).toInt, r(1), r(2), r(3), new Timestamp(DatatypeConverter.parseDateTime(r(4)).getTimeInMillis()),
     		  											Row(r(0).toInt, r(1), r(2), r(3), new Timestamp(DatatypeConverter.parseDateTime(r(4)).getTimeInMillis()))))
-      val schemaRDD = sqc.applySchema(rowRDD, schema)
+      val schemaRDD = sqc.createDataFrame(rowRDD, schema)
 
       val target = "sparksql-test/scala-basic-write-rich-mapping-id-mapping"
       schemaRDD.saveToEs(target, Map(ES_MAPPING_ID -> "id"))
@@ -166,7 +166,7 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
       val schemaRDD = sqc.esRDD(target)
       
       assertTrue(schemaRDD.count > 300)
-      println(schemaRDD.schemaString)
+      println(schemaRDD.schema.simpleString)
     }
         
     private def artistsAsSchemaRDD = {         
@@ -180,7 +180,7 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
         StructField("time", TimestampType, true)))
     
       val rowRDD = data.map(_.split("\t")).map(r => Row(r(0).toInt, r(1), r(2), r(3), new Timestamp(DatatypeConverter.parseDateTime(r(4)).getTimeInMillis())))
-      val schemaRDD = sqc.applySchema(rowRDD, schema)
+      val schemaRDD = sqc.createDataFrame(rowRDD, schema)
       schemaRDD
     }
 
@@ -193,11 +193,11 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
       
       
       val allRDD = sqc.sql("SELECT * FROM sqlbasicread WHERE id >= 1 AND id <=10")
-      println(allRDD.schemaString)
+      println(allRDD.schema.simpleString)
       
       val nameRDD = sqc.sql("SELECT name FROM sqlbasicread WHERE id >= 1 AND id <=10")
       
-      println(nameRDD.schemaString)
+      println(nameRDD.schema.simpleString)
       assertEquals(10, nameRDD.count)
       nameRDD.take(7).foreach(println)
     }
@@ -217,7 +217,7 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
       
       val allResults = sqc.sql("SELECT * FROM sqlvarcol")
       assertEquals(2, allResults.count())
-      println(allResults.schemaString)
+      println(allResults.schema.simpleString)
 
       val filter = sqc.sql("SELECT * FROM sqlvarcol WHERE airport = 'OTP'")
       assertEquals(1, filter.count())
@@ -253,7 +253,7 @@ class AbstractScalaEsScalaSparkSQL extends Serializable {
       
       val insertRDD = sqc.sql("INSERT INTO sqlbasicwrite SELECT 123456789, 'test-sql', 'http://test-sql.com', '', 12345")
       
-      println(insertRDD.schemaString)
+      println(insertRDD.schema.simpleString)
       assertTrue(insertRDD.count == 1)
       insertRDD.take(7).foreach(println)
     }

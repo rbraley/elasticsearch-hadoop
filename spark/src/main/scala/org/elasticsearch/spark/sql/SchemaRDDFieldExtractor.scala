@@ -5,7 +5,7 @@ import org.elasticsearch.hadoop.serialization.MapFieldExtractor
 import scala.collection.GenMapLike
 import scala.collection.Map
 import org.elasticsearch.hadoop.serialization.field.FieldExtractor
-import org.apache.spark.sql.catalyst.types.StructType
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.catalyst.expressions.Row
 import org.elasticsearch.spark.serialization.ScalaMapFieldExtractor
 
